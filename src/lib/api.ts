@@ -63,6 +63,7 @@ export interface PlayerState {
 export interface Snapshot {
   game_id: string;
   pin: string;
+  slug?: string | null; // link đơn giản (vd 'tet-2027'), null = chưa đặt
   title: string;
   status: Status;
   idx: number;
@@ -94,6 +95,7 @@ export interface EditorQuestion {
 export interface GameRow {
   id: string;
   pin: string;
+  slug: string | null;
   title: string;
   status: Status;
   total_questions: number;
@@ -129,7 +131,23 @@ export const api = {
   hostEnd: (game: string) => rpc<null>('host_end_game', { p_game: game }),
   hostSnapshot: (game: string) => rpc<Snapshot>('host_snapshot', { p_game: game }),
   hostResults: (game: string) => rpc<ResultRow[]>('host_results', { p_game: game }),
+  // Link đơn giản: host đặt/bỏ (slug rỗng = bỏ), người chơi đổi link -> PIN
+  hostSetSlug: (game: string, slug: string) => rpc<{ slug: string | null }>('host_set_slug', { p_game: game, p_slug: slug }),
+  resolveSlug: (slug: string) => rpc<{ pin: string; title: string }>('resolve_slug', { p_slug: slug }),
 };
+
+/**
+ * Chuẩn hoá chuỗi người dùng gõ thành slug hợp lệ (khớp ràng buộc trong DB):
+ * bỏ dấu tiếng Việt, chữ thường, ký tự khác a-z0-9 -> '-', gộp '-' liên tiếp, tối đa 40 ký tự.
+ * Giữ '-' ở cuối khi đang gõ (trimEnd=false) để người dùng gõ tiếp được.
+ */
+export function normalizeSlug(input: string, trimEnd = true): string {
+  let s = input.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+/, '').slice(0, 40);
+  if (trimEnd) s = s.replace(/-+$/, '');
+  return s;
+}
+export const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/; // giống ràng buộc DB (cộng thêm: không toàn số)
 
 export const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 export const jitter = (maxMs: number) => Math.random() * maxMs;

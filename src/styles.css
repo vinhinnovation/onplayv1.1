@@ -175,3 +175,13 @@ textarea.input { resize: vertical; min-height: 44px; }
   .top .brand img { height: 28px; }
   .main { padding: 14px 14px 40px; }
 }
+
+/* Link đơn giản (v1.2) */
+.slug-big { font-size: clamp(1.4rem, 4.5vw, 2.6rem); font-weight: 800; word-break: break-all; line-height: 1.15; }
+.slug-big b { color: #6fd6de; } /* aqua sáng hơn cho nền tối */
+.slug-panel { width: 100%; max-width: 520px; margin: 4px auto; text-align: left; }
+.slug-input { display: flex; align-items: center; gap: 6px; }
+.slug-input .input { flex: 1; min-width: 0; }
+.slug-prefix { font-weight: 700; opacity: .85; white-space: nowrap; max-width: 45%; overflow: hidden; text-overflow: ellipsis; }
+.slug-hint { margin: 0 0 10px; font-size: .8rem; opacity: .75; }
+.slug-panel .btn.ghost { color: inherit; }

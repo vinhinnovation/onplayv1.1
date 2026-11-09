@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { LETTERS, Leaderboard, Podium, Shell, TimerBar, useCountdown } from '../components/Shared';
-import { api, sleep, type Snapshot } from '../lib/api';
+import { api, normalizeSlug, sleep, SLUG_RE, type Snapshot } from '../lib/api';
 import { downloadCsv } from '../lib/csv';
 import { useI18n } from '../lib/i18n';
 import { useHostAuth } from '../lib/useHostAuth';
@@ -69,7 +69,8 @@ export function HostGame() {
   if (!id) return null;
   if (!snap) return <Shell theme="dark" back="/host"><p className="center">{error || t('common.loading')}</p></Shell>;
 
-  const joinUrl = `${window.location.origin}/join/${snap.pin}`;
+  // Có link đơn giản thì QR + dòng hướng dẫn dùng link đó, không thì dùng /join/<pin> như cũ
+  const joinUrl = snap.slug ? `${window.location.origin}/${snap.slug}` : `${window.location.origin}/join/${snap.pin}`;
   const q = snap.question;
   const last = snap.idx + 1 >= snap.total;
   const nextLabel = last ? t('game.finish') : t('game.next');
@@ -102,10 +103,12 @@ export function HostGame() {
     case 'lobby':
       body = (
         <div className="center stack">
-          <p style={{ margin: 0 }}>{t('game.joinAt')} <b>{window.location.host}</b> {t('game.withPin')}</p>
+          {snap.slug && <div className="slug-big">{window.location.host}/<b>{snap.slug}</b></div>}
+          <p style={{ margin: 0 }}>{snap.slug ? t('slug.orPin') : <>{t('game.joinAt')} <b>{window.location.host}</b> {t('game.withPin')}</>}</p>
           <div className="big-pin">{snap.pin}</div>
           <div className="qrbox"><QRCodeSVG value={joinUrl} size={180} /></div>
           <p style={{ margin: 0, opacity: .8 }}>{t('game.orScan')}</p>
+          <SlugEditor gameId={id} current={snap.slug ?? null} joinUrl={joinUrl} onSaved={refresh} />
           <h2 style={{ margin: 0 }}>{snap.title}</h2>
           <div className="stat"><b>{snap.players}</b>{t('game.players')}</div>
           {snap.players === 0 && <p style={{ opacity: .75 }}>{t('game.waitPlayers')}</p>}
@@ -172,5 +175,60 @@ export function HostGame() {
       {error && <p className="err" role="alert">{error}</p>}
       {body}
     </Shell>
+  );
+}
+
+/**
+ * Ô đặt link đơn giản cho game (hiện ở lobby). Server kiểm tra lại định dạng, từ khoá hệ thống
+ * và trùng lặp; ở đây chỉ chuẩn hoá khi gõ để host thấy ngay link cuối cùng.
+ */
+function SlugEditor({ gameId, current, joinUrl, onSaved }: {
+  gameId: string; current: string | null; joinUrl: string; onSaved: () => Promise<void>;
+}) {
+  const { t, err } = useI18n();
+  const [draft, setDraft] = useState(current ?? '');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  // Đồng bộ khi slug trên server đổi (vd host mở game ở máy khác)
+  useEffect(() => { setDraft(current ?? ''); }, [current]);
+
+  const clean = normalizeSlug(draft);
+  const valid = SLUG_RE.test(clean) && !/^[0-9]+$/.test(clean);
+  const save = async (value: string) => {
+    setBusy(true); setMsg(null);
+    try {
+      await api.hostSetSlug(gameId, value);
+      await onSaved();
+      setMsg({ ok: true, text: value ? t('slug.saved') : t('slug.cleared') });
+    } catch (e) { setMsg({ ok: false, text: err(e) }); }
+    finally { setBusy(false); }
+  };
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(joinUrl); setMsg({ ok: true, text: t('slug.copied') }); }
+    catch { setMsg({ ok: false, text: joinUrl }); } // clipboard bị chặn: hiện link để host tự chép
+  };
+
+  return (
+    <div className="panel slug-panel">
+      <label className="field" style={{ marginBottom: 8 }}>
+        <span style={{ color: 'inherit' }}>{t('slug.label')}</span>
+        <div className="slug-input">
+          <span className="slug-prefix">{window.location.host}/</span>
+          <input className="input" maxLength={40} placeholder="tet-2027" value={draft} autoComplete="off" spellCheck={false}
+            onChange={(e) => setDraft(normalizeSlug(e.target.value, false))}
+            onKeyDown={(e) => { if (e.key === 'Enter' && valid && !busy) void save(clean); }} />
+        </div>
+      </label>
+      <p className="slug-hint">{t('slug.hint')}</p>
+      {msg && <p className={msg.ok ? 'ok-note' : 'err'} role="status">{msg.text}</p>}
+      <div className="row" style={{ justifyContent: 'center' }}>
+        <button className="btn teal small" disabled={busy || !valid || clean === current} onClick={() => { void save(clean); }}>
+          {current ? t('slug.update') : t('slug.save')}
+        </button>
+        {current && <button className="btn ghost small" disabled={busy} onClick={() => { void save(''); }}>{t('slug.clear')}</button>}
+        <button className="btn ghost small" onClick={() => { void copy(); }}>{t('slug.copy')}</button>
+      </div>
+    </div>
   );
 }

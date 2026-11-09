@@ -21,7 +21,7 @@ export function HostDashboard() {
   const load = useCallback(async () => {
     const [q, g] = await Promise.all([
       supabase.from('quizzes').select('id,title,description,updated_at,questions(count)').order('updated_at', { ascending: false }),
-      supabase.from('games').select('id,pin,title,status,total_questions,created_at').order('created_at', { ascending: false }).limit(30),
+      supabase.from('games').select('id,pin,slug,title,status,total_questions,created_at').order('created_at', { ascending: false }).limit(30),
     ]);
     if (q.error || g.error) { setError(err(q.error ?? g.error)); return; }
     setQuizzes(q.data as unknown as QuizRow[]);
@@ -84,7 +84,7 @@ export function HostDashboard() {
             <li key={g.id} className="item">
               <div>
                 <h3>{g.title} <span className={g.status === 'ended' ? 'badge' : 'badge live'}>{g.status === 'ended' ? t('host.statusEnded') : t('host.statusRunning')}</span></h3>
-                <span className="muted">PIN {g.pin} · {fmt(g.created_at)} · {g.total_questions} {t('host.questions')}</span>
+                <span className="muted">PIN {g.pin}{g.slug ? ` · /${g.slug}` : ''} · {fmt(g.created_at)} · {g.total_questions} {t('host.questions')}</span>
               </div>
               <div className="row">
                 {g.status !== 'ended' && <Link className="btn teal small" to={`/host/game/${g.id}`}>{t('game.resume')}</Link>}

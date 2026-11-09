@@ -6,6 +6,7 @@ import { HostLogin } from './pages/HostLogin';
 import { HostDashboard } from './pages/HostDashboard';
 import { QuizEditor } from './pages/QuizEditor';
 import { HostGame } from './pages/HostGame';
+import { SlugJoin } from './pages/SlugJoin';
 
 export function App() {
   return (
@@ -18,6 +19,8 @@ export function App() {
       <Route path="/host" element={<HostDashboard />} />
       <Route path="/host/quiz/:id" element={<QuizEditor />} />
       <Route path="/host/game/:id" element={<HostGame />} />
+      {/* Link đơn giản do host đặt, vd /tet-2027. Các route cố định ở trên luôn được ưu tiên. */}
+      <Route path="/:slug" element={<SlugJoin />} />
       <Route path="*" element={<Home />} />
     </Routes>
   );
