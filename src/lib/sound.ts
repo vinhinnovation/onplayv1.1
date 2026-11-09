@@ -15,7 +15,7 @@ export type Sfx = 'join' | 'start' | 'click' | 'tick' | 'correct' | 'wrong' | 't
 // gain đã cân theo độ to (RMS) đo được của từng file để các bản nhạc nghe đều nhau
 const TRACKS: Record<Track, { urls: string[]; loop: boolean; gain: number }> = {
   lobby:       { urls: ['/audio/lobby.mp3'],                            loop: true,  gain: 0.78 },
-  question:    { urls: ['/audio/question.ogg', '/audio/question.mp3'],  loop: true,  gain: 0.21 }, // OGG lặp liền mạch hơn; MP3 cho trình duyệt cũ
+  question:    { urls: ['/audio/question.mp3'],                         loop: true,  gain: 0.27 }, // 8 Bit Concentration Loop (RMS 0.151)
   leaderboard: { urls: ['/audio/leaderboard.mp3'],                      loop: true,  gain: 0.36 },
   victory:     { urls: ['/audio/victory.mp3'],                          loop: false, gain: 0.7 },
 };
