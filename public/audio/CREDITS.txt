@@ -2,10 +2,10 @@ OnQuiz audio credits
 All tracks below are released under CC0 1.0 (public domain dedication). Attribution is not required;
 it is listed here for transparency and so the source can be re-checked.
 
-lobby.ogg        "Two Simple Game Music Loops" (menu loop)  - qubodup  - https://opengameart.org/node/174263        - CC0
-leaderboard.ogg  "Two Simple Game Music Loops" (level loop) - qubodup  - https://opengameart.org/node/174263        - CC0
-question.mp3     "8 Bit Concentration Loop"                 - cosmac   - https://opengameart.org/content/8-bit-concentration-loop - CC0
-victory.mp3      "Victory"                                  - celestialghost8 - https://opengameart.org/content/victory - CC0
+lobby.mp3        "Peace At Last (Loop)"        - Trex0n          - https://opengameart.org/content/peace-at-last-loop        - CC0
+question.ogg/mp3 "Cozy Puzzle In-Game 1"       - MintoDog        - https://opengameart.org/content/cozy-puzzle-in-game-1      - CC0
+leaderboard.mp3  "Happy Wireframes"            - Bobjt           - https://opengameart.org/content/happy-wireframes           - CC0
+victory.mp3      "Victory"                     - celestialghost8 - https://opengameart.org/content/victory                    - CC0
 
 Short sound effects (join, tick, correct, wrong, click) are synthesised in the browser with the Web Audio API
 (src/lib/sound.ts), so they contain no third-party samples.

@@ -13,12 +13,19 @@ export type Track = 'lobby' | 'question' | 'leaderboard' | 'victory';
 export type Sfx = 'join' | 'start' | 'click' | 'tick' | 'correct' | 'wrong' | 'timeup' | 'reveal';
 
 // gain đã cân theo độ to (RMS) đo được của từng file để các bản nhạc nghe đều nhau
-const TRACKS: Record<Track, { url: string; loop: boolean; gain: number }> = {
-  lobby:       { url: '/audio/lobby.ogg',       loop: true,  gain: 0.55 },
-  question:    { url: '/audio/question.mp3',    loop: true,  gain: 0.27 },
-  leaderboard: { url: '/audio/leaderboard.ogg', loop: true,  gain: 0.68 },
-  victory:     { url: '/audio/victory.mp3',     loop: false, gain: 0.7 },
+const TRACKS: Record<Track, { urls: string[]; loop: boolean; gain: number }> = {
+  lobby:       { urls: ['/audio/lobby.mp3'],                            loop: true,  gain: 0.78 },
+  question:    { urls: ['/audio/question.ogg', '/audio/question.mp3'],  loop: true,  gain: 0.21 }, // OGG lặp liền mạch hơn; MP3 cho trình duyệt cũ
+  leaderboard: { urls: ['/audio/leaderboard.mp3'],                      loop: true,  gain: 0.36 },
+  victory:     { urls: ['/audio/victory.mp3'],                          loop: false, gain: 0.7 },
 };
+
+/** Chọn file đầu tiên mà trình duyệt phát được (Safari cũ không hỗ trợ OGG Vorbis). */
+function pickUrl(urls: string[]): string {
+  const a = document.createElement('audio');
+  const ok = (u: string) => !u.endsWith('.ogg') || a.canPlayType('audio/ogg; codecs="vorbis"') !== '';
+  return urls.find(ok) ?? urls[urls.length - 1];
+}
 
 const FADE_S = 0.5;
 const MUSIC_VOL = 0.7;  // âm lượng tổng của nhạc nền
@@ -86,7 +93,7 @@ function load(track: Track): Promise<AudioBuffer | null> {
       const c = getCtx();
       if (!c) return null;
       try {
-        const res = await fetch(TRACKS[track].url);
+        const res = await fetch(pickUrl(TRACKS[track].urls));
         if (!res.ok) return null;
         return await c.decodeAudioData(await res.arrayBuffer()); // trình duyệt không hỗ trợ định dạng sẽ ném lỗi
       } catch { return null; }
