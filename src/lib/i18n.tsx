@@ -162,6 +162,10 @@ const vi = {
   'err.slug_taken': 'Link này đang được một game khác dùng. Hãy chọn tên khác.',
   'err.slug_reserved': 'Link này trùng với đường dẫn hệ thống. Hãy chọn tên khác.',
   'err.game_ended': 'Game đã kết thúc.',
+  'snd.label': 'Âm thanh',
+  'snd.music': 'Nhạc nền',
+  'snd.sfx': 'Hiệu ứng âm thanh',
+  'snd.tap': 'Chạm để bật âm thanh',
 } as const;
 
 type Key = keyof typeof vi;
@@ -328,6 +332,10 @@ const en: Record<Key, string> = {
   'err.slug_taken': 'Another running game is using this link. Pick another name.',
   'err.slug_reserved': 'This link clashes with a system path. Pick another name.',
   'err.game_ended': 'The game has ended.',
+  'snd.label': 'Sound',
+  'snd.music': 'Background music',
+  'snd.sfx': 'Sound effects',
+  'snd.tap': 'Tap to enable sound',
 };
 
 type Lang = 'vi' | 'en';

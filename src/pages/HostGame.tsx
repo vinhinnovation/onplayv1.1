@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { LETTERS, Leaderboard, Podium, Shell, TimerBar, useCountdown } from '../components/Shared';
+import { LETTERS, Leaderboard, Podium, Shell, SoundToggle, TimerBar, useCountdown } from '../components/Shared';
+import { sound, type Track } from '../lib/sound';
 import { api, normalizeSlug, sleep, SLUG_RE, type Snapshot } from '../lib/api';
 import { downloadCsv } from '../lib/csv';
 import { useI18n } from '../lib/i18n';
@@ -50,6 +51,17 @@ export function HostGame() {
 
   const status = snap?.status;
   const msLeft = useCountdown(deadlineAt, status === 'question');
+
+  // --- Âm thanh trên màn hình chiếu: nhạc nền theo trạng thái game + tiếng tích tắc 5 giây cuối ---
+  useEffect(() => { sound.init('host'); return () => sound.stop(); }, []);
+  useEffect(() => {
+    const scene: Partial<Record<string, Track>> = { lobby: 'lobby', question: 'question', leaderboard: 'leaderboard', ended: 'victory' };
+    sound.music(status ? scene[status] ?? null : null);
+    if (status === 'question') sound.sfx('start');
+    if (status === 'reveal') sound.sfx('reveal');
+  }, [status]);
+  const secsLeft = Math.ceil(msLeft / 1000);
+  useEffect(() => { if (status === 'question' && secsLeft >= 1 && secsLeft <= 5) sound.sfx('tick'); }, [secsLeft, status]);
 
   // Tự chốt câu hỏi khi hết giờ (+ grace) hoặc khi tất cả người chơi đã trả lời.
   // Chỉ phụ thuộc vào giá trị nguyên thủy để timer không bị reset mỗi lần polling.
@@ -171,7 +183,7 @@ export function HostGame() {
   }
 
   return (
-    <Shell theme="dark" wide footer={false} back="/host" right={<span className="badge">PIN {snap.pin}</span>}>
+    <Shell theme="dark" wide footer={false} back="/host" right={<span className="row" style={{ gap: 8 }}><SoundToggle /><span className="badge">PIN {snap.pin}</span></span>}>
       {error && <p className="err" role="alert">{error}</p>}
       {body}
     </Shell>

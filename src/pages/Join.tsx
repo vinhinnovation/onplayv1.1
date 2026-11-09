@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Shell } from '../components/Shared';
 import { api } from '../lib/api';
 import { useI18n } from '../lib/i18n';
+import { sound } from '../lib/sound';
 import { saveSession } from '../lib/usePlayerGame';
 
 export function Join() {
@@ -14,6 +15,8 @@ export function Join() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => { sound.init('player'); }, []);
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (busy) return;
@@ -21,6 +24,7 @@ export function Join() {
     try {
       const r = await api.joinGame(pin, nick);
       saveSession({ gameId: r.game_id, playerId: r.player_id, token: r.token, shard: r.shard, nickname: r.nickname, title: r.title, pin });
+      sound.sfx('join');
       nav('/play', { replace: true });
     } catch (ex) {
       setError(err(ex));

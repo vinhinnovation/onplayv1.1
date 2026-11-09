@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../lib/i18n';
 import type { TopRow } from '../lib/api';
+import { sound, useSound } from '../lib/sound';
 
 export const LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -102,5 +103,20 @@ export function Podium({ top }: { top: TopRow[] }) {
       {col(first, 'p1')}
       {col(third, 'p3')}
     </div>
+  );
+}
+
+/** Hai nút nhỏ: ♪ nhạc nền, 🔊 hiệu ứng. Trình duyệt chỉ cho phát tiếng sau lần chạm đầu tiên nên có gợi ý khi đang bị khoá. */
+export function SoundToggle() {
+  const { t } = useI18n();
+  const s = useSound();
+  return (
+    <span className="snd" role="group" aria-label={t('snd.label')}>
+      <button className={s.musicOn ? 'on' : ''} aria-pressed={s.musicOn} title={t('snd.music')} aria-label={t('snd.music')}
+        onClick={() => sound.setMusic(!s.musicOn)}>♪</button>
+      <button className={s.sfxOn ? 'on' : ''} aria-pressed={s.sfxOn} title={t('snd.sfx')} aria-label={t('snd.sfx')}
+        onClick={() => sound.setSfx(!s.sfxOn)}>{s.sfxOn ? '🔊' : '🔇'}</button>
+      {s.musicOn && s.locked && <span className="snd-hint">{t('snd.tap')}</span>}
+    </span>
   );
 }
